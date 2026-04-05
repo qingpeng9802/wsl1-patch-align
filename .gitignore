@@ -1,0 +1,22 @@
+# Python internals
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Pytest specific
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environments (Essential for security)
+.venv/
+venv/
+env/
+.env
+
+# Tooling (Pyright & Ruff)
+.pyrightpy
+.ruff_cache/
+
+# OS leftovers
+.DS_Store

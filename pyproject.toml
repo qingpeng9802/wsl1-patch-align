@@ -1,0 +1,65 @@
+[project]
+name = "wsl1-patch-align"
+version = "0.0.3"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pyright",
+    "ruff",
+]
+
+[tool.pyright]
+include = ["fix.py", "test.py"]
+exclude = ["**/__pycache__", ".venv", "**/node_modules", "**/.*"]
+typeCheckingMode = "strict"
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["ALL"]
+
+ignore = [
+    "EXE001", # Shebang is present but file is not executable
+    "PLR0913", # Allow more than 5 arguments in a function
+    "PLR2004", # Magic value
+    "S101", # Use of `assert` detected
+    "S603", # `subprocess` call: check for execution of untrusted input
+    "COM812", # Trailing comma missing
+    "ANN201", # Missing return type annotation for public function
+    "ERA001", # Found commented-out code
+    "FBT001", # Boolean-typed positional argument in function definition
+    "FBT002", # Boolean default positional argument in function definition
+    "T201", # `print` found
+    "TRY003", # Avoid specifying long messages outside the exception class
+    "TRY201", # Use `raise` without specifying exception name
+    "BLE001", # Do not catch blind exception: `Exception`
+    "RUF010", # Use explicit conversion flag
+    "EM101", # Exception must not use a string literal, assign to variable first
+    "EM102", # Exception must not use an f-string literal, assign to variable first
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D203",
+    "D211",
+    "D212",
+    "D400",
+    "D415",
+]
+
+# Enable fixable rules to run on save (if using VS Code)
+fixable = ["ALL"]
+
+[tool.ruff.lint.mccabe]
+# Max complexity (standard is 10)
+max-complexity = 13
+
+
+[tool.ruff.format]
+# Use the official formatter (replaces Black)
+quote-style = "double"
+indent-style = "space"
