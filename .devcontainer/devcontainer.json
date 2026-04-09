@@ -10,5 +10,5 @@
     }
   },
 
-  "postCreateCommand": "pip install --dependency-groups dev"
+  "postCreateCommand": "pip install --group dev"
 }
