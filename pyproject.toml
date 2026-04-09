@@ -43,6 +43,7 @@ ignore = [
     "RUF010", # Use explicit conversion flag
     "EM101", # Exception must not use a string literal, assign to variable first
     "EM102", # Exception must not use an f-string literal, assign to variable first
+    "PLR5501", # Use `elif` instead of `else` then `if`, to reduce indentation
     "D100",
     "D101",
     "D102",
