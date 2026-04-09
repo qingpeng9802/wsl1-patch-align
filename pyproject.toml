@@ -3,6 +3,9 @@ name = "wsl1-patch-align"
 version = "0.0.3"
 dependencies = []
 
+[project.scripts]
+fixelf = "fix:main"
+
 [dependency-groups]
 dev = [
     "pytest",
