@@ -1,5 +1,5 @@
 # wsl1-patch-align
-This Python script is to fix ELF p_align for WSL 1 compatibility.  
+This Python script is to fix ELF p_align for Windows Subsystem for Linux 1 (WSL 1) compatibility.  
 
 No dependency.
 
