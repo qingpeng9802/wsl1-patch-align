@@ -1,0 +1,14 @@
+{
+  "image": "mcr.microsoft.com/devcontainers/python:3.10",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",      // Python support
+        "tamasfe.even-better-toml" // Better TOML support for your pyproject.toml
+      ]
+    }
+  },
+
+  "postCreateCommand": "pip install --dependency-groups dev"
+}
