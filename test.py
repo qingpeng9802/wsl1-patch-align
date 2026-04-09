@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 import fix
-from fix import TARGET_ALIGN, patch
+from fix import TARGET_ALIGN, patch_data
 
 FILE_PATH = str(Path(fix.__file__).resolve())
 LARGE_ALIGN = 0x200000
@@ -51,7 +51,7 @@ class TestPatchingLogic:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            changed = patch(data, write=True)
+            changed = patch_data(data, write=True)
 
         assert changed is False
 
@@ -80,7 +80,7 @@ class TestPatchingLogic:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            patch(data, write=True)
+            patch_data(data, write=True)
 
         # Verification
         content = temp_elf.read_bytes()
@@ -113,7 +113,7 @@ class TestBinaryVariants:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            changed = patch(data, write=True)
+            changed = patch_data(data, write=True)
 
         # 3. Assert: Verify the logic reports a change
         assert changed is True
@@ -141,7 +141,7 @@ class TestBinaryVariants:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            patch(data, write=True)
+            patch_data(data, write=True)
 
         # Verify the value was written in Big-Endian format
         val: int = struct.unpack_from(">Q", temp_elf.read_bytes(), 112)[0]
@@ -165,10 +165,10 @@ class TestBinaryVariants:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            changed = patch(data, write=False) # print the Large phnum
+            changed = patch_data(data, write=False) # print the Large phnum
             assert changed is True
 
-            patch(data, write=True)
+            patch_data(data, write=True)
 
             # Verify the align was changed to 0x1000
             # Phdr is at offset 64, p_align is at +48 within Phdr = 112
@@ -191,7 +191,7 @@ class TestMemorySafety:
         ):
             # This should identify that a fix is needed but NOT attempt to write
             # because write=False.
-            needs_fix = patch(data, write=False)
+            needs_fix = patch_data(data, write=False)
 
             assert needs_fix is True, "Should identify that the ELF needs a fix"
 
@@ -211,7 +211,7 @@ class TestMemorySafety:
             # This should fail because pack_into cannot write to read-only mmap
             pytest.raises(TypeError)
         ):
-            patch(data, write=True)
+            patch_data(data, write=True)
 
     def test_truncated_elf_table(self, temp_elf: Path):
         # 1. Create a 64-bit ELF header
@@ -233,10 +233,10 @@ class TestMemorySafety:
             Path.open(temp_elf, "rb") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as data,
             # mmap might fail if the file is too small for the offsets,
-            # or your patch() function's safety check should catch it.
+            # or your patch_data() function's safety check should catch it.
             pytest.raises(IOError, match="Malformed ELF")
         ):
-            patch(data, write=False)
+            patch_data(data, write=False)
 
     def test_invalid_elf(self, temp_elf: Path):
         temp_elf.write_bytes(b"NOT_AN_ELF_FILE_FOR_SURE")
@@ -246,9 +246,9 @@ class TestMemorySafety:
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as data,
             pytest.raises(IOError, match="Not a valid ELF file")
         ):
-            patch(data, write=False)
+            patch_data(data, write=False)
 
-    def test_file_integrity_after_patch(self, temp_elf: Path):
+    def test_file_integrity_after_patch_data(self, temp_elf: Path):
         create_dummy_elf(temp_elf, is_64bit=True, p_align=LARGE_ALIGN)
         original_size = temp_elf.stat().st_size
 
@@ -256,7 +256,7 @@ class TestMemorySafety:
             Path.open(temp_elf, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            patch(data, write=True)
+            patch_data(data, write=True)
 
         assert temp_elf.stat().st_size == original_size
         assert temp_elf.read_bytes().startswith(b"\x7fELF")
@@ -337,7 +337,7 @@ class TestCommandLineInterface:
         )
 
         assert result.returncode == 1
-        assert "not exist" in result.stdout
+        assert "not find" in result.stdout
 
     def test_backup_overwrite_protection(self, temp_elf: Path):
         create_dummy_elf(temp_elf, p_align=LARGE_ALIGN)

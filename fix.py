@@ -50,10 +50,10 @@ ELF32: Final = ELFOffsets(
 )
 
 ELF64: Final = ELFOffsets(
-    ph_table_start=32,  # e_phoff
-    entry_size=54,  # e_phentsize
-    entry_count=56,  # e_phnum
-    p_align_offset=48,  # Offset of p_align within Program header (Phdr)
+    ph_table_start=32,
+    entry_size=54,
+    entry_count=56,
+    p_align_offset=48,
     fmt="Q",  # 8-byte unsigned long long
 )
 
@@ -80,7 +80,7 @@ def get_backup_path(path: Path, backup_str: str | None = None):
     return backup
 
 
-def patch(data: mmap.mmap, write: bool) -> bool:
+def patch_data(data: mmap.mmap, write: bool) -> bool:
     # 1. Check bytes for validation, arch and endian
     if data[:4] != b"\x7fELF":
         raise OSError(
@@ -169,7 +169,7 @@ def fix_elf(file_path: Path, backup_path: Path, overwrite: bool = False):
         Path.open(file_path, "rb") as f,
         mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as data
     ):
-        needs_fix = patch(data, write=False)
+        needs_fix = patch_data(data, write=False)
 
     if not needs_fix:
         print(f"{LOG_TITLE} No changes needed.")
@@ -184,7 +184,7 @@ def fix_elf(file_path: Path, backup_path: Path, overwrite: bool = False):
             Path.open(file_path, "r+b") as f,
             mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
         ):
-            patch(data, write=True)
+            patch_data(data, write=True)
             # Flush changes to disk
             data.flush()
             os.fsync(f.fileno())
@@ -206,26 +206,60 @@ def restore_file(file_path: Path, backup_path: Path):
     print(f"{LOG_TITLE} Restore complete.")
 
 
+def get_binary_path(target: str, file: bool, command: bool):
+    raw_path = None
+
+    if file:
+        raw_path = Path(target)
+    elif command:
+        cmd_location = shutil.which(target)
+        raw_path = Path(cmd_location) if cmd_location else None
+    else:
+        if os.sep in target:
+            raw_path = Path(target)
+        else:
+            cmd_location = shutil.which(target)
+            raw_path = Path(cmd_location) if cmd_location else None
+
+    if not raw_path or not raw_path.exists():
+        raise FileNotFoundError(f"Error: Could not find '{target}' as a file or system command.")
+
+    print(f"{LOG_TITLE} Found target file: {raw_path}")
+    final_path = raw_path.resolve()
+
+    if raw_path != final_path:
+        print(f"{LOG_TITLE} Symlink detected: {raw_path} -> patching: {final_path}")
+
+    return final_path
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Fix ELF p_align for WSL 1 compatibility."
     )
-    parser.add_argument("file", help="Path to the binary to fix")
-    parser.add_argument("-b", "--backup", default=None, help="Customized backup path")
-    parser.add_argument(
-        "-o", "--overwrite", action="store_true", help="Overwrite existing backup"
-    )
+
+    parser.add_argument("target", help="The file path to the binary or command name to fix")
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument("-f", "--file", action="store_true", help="Explicitly treat input as a file path")
+    mode.add_argument("-c", "--command", action="store_true", help="Explicitly treat input as a command name")
+
     parser.add_argument(
         "-r", "--restore", action="store_true", help="Restore the file from the backup"
+    )
+    parser.add_argument("-b", "--backup", help="Customized backup path")
+    parser.add_argument(
+        "-o", "--overwrite", action="store_true", help="Overwrite existing backup"
     )
 
     args = parser.parse_args()
 
     try:
-        target_path = Path(args.file).resolve()
+        target_path = get_binary_path(args.target, args.file, args.command)
         target_backup = get_backup_path(target_path, args.backup)
 
         if args.restore:
+            if args.overwrite:
+                parser.error("Option --overwrite is only valid when fixing a file, not when using --restore")
             restore_file(target_path, target_backup)
         else:
             fix_elf(target_path, target_backup, args.overwrite)
@@ -240,7 +274,7 @@ def main():
 
     except (OSError, ValueError) as e:
         # ValueError: Used for "Empty file" or logic issues
-        # IOError: Used for "Not a valid ELF" or "Malformed ELF"
+        # OSError: Used for "Not a valid ELF" or "Malformed ELF"
         print(f"{ERR_TITLE} Patch Error: {e}")
         sys.exit(1)
 
