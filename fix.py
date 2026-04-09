@@ -7,8 +7,8 @@ https://github.com/microsoft/WSL/issues/8219
 https://github.com/microsoft/WSL/issues/8151
 https://github.com/microsoft/WSL/issues/12359
 
-root cause: https://github.com/microsoft/WSL/issues/8219#issuecomment-1094123281
-Idea is from https://github.com/microsoft/WSL/issues/8219#issuecomment-1133936081
+Root cause: https://github.com/microsoft/WSL/issues/8219#issuecomment-1094123281
+Idea is from and inspired by https://github.com/microsoft/WSL/issues/8219#issuecomment-1133936081
 """
 
 import argparse
