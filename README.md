@@ -55,6 +55,7 @@ This issue mainly affect `node`, `gzip` and `@github/copilot`, and the errors ar
 ```log
 /usr/bin/node: 1: Syntax error: ")" unexpected
 /usr/bin/nodejs: cannot execute binary file: Exec format error
+/usr/bin/gzip: 4: Syntax error: "(" unexpected
 sh: 1: gzip: Exec format error
 node_modules/@github/copilot-linux-x64/copilot: 1: Syntax error: ")" unexpected
 ```
