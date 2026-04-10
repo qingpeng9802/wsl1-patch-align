@@ -51,7 +51,7 @@ python3 <(wget -qO- --https-only --secure-protocol=TLSv1_3 https://raw.githubuse
 ```
 
 ## Target issue
-This issue mainly affect `node`, `gzip` and `@github/copilot`, and the errors are reported in the way as 
+This issue mainly affects `node`, `gzip` and `@github/copilot`, and the errors are usually reported as  
 ```log
 /usr/bin/node: 1: Syntax error: ")" unexpected
 /usr/bin/nodejs: cannot execute binary file: Exec format error
