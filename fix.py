@@ -32,6 +32,7 @@ LOG_TITLE: Final = f"{BLUE}[p_align]{NC}"
 ERR_TITLE: Final = f"{RED}[p_align]{NC}"
 
 PT_LOAD: Final = 1
+PN_XNUM: Final = 0xffff
 TARGET_ALIGN: Final = 0x1000
 
 class ELFOffsets(TypedDict):
@@ -108,7 +109,7 @@ def patch_data(data: mmap.mmap, write: bool) -> bool:
     phentsize = get_val(offsets["entry_size"], "H")
     phnum = get_val(offsets["entry_count"], "H")
 
-    if phnum == 0xffff:
+    if phnum == PN_XNUM:
         # e_shoff is located at offset 32 (ELF32) or 40 (ELF64)
         shoff_pos = 40 if is_64bit else 32
         shoff_fmt = "Q" if is_64bit else "I"

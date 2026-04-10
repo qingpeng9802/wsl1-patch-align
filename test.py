@@ -90,10 +90,10 @@ class TestPatchingLogic:
         assert val0 == 0x8
         # Offset: phoff + (1 * phentsize) + p_align_offset(48) = 168
         val1: int = struct.unpack_from("<Q", content, 168)[0]
-        assert val1 == 0x1000
+        assert val1 == TARGET_ALIGN
         # Offset: phoff + (2 * phentsize) + p_align_offset(48) = 224
         val2: int = struct.unpack_from("<Q", content, 224)[0]
-        assert val2 == 0x1000
+        assert val2 == TARGET_ALIGN
 
 
 class TestBinaryVariants:
