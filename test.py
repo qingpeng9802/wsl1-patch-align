@@ -95,6 +95,39 @@ class TestPatchingLogic:
         val2: int = struct.unpack_from("<Q", content, 224)[0]
         assert val2 == TARGET_ALIGN
 
+    def test_already_target_alignment(self, temp_elf: Path):
+        # Create an ELF where p_align is already 0x1000 (TARGET_ALIGN)
+        create_dummy_elf(temp_elf, is_64bit=True, p_align=0x1000)
+
+        with (
+            Path.open(temp_elf, "r+b") as f,
+            mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
+        ):
+            changed = patch_data(data, write=True)
+
+        assert changed is False
+        # Double check the value remains TARGET_ALIGN
+        val = struct.unpack_from("<Q", temp_elf.read_bytes(), 112)[0]
+        assert val == 0x1000
+
+    def test_smaller_alignment_safety_skip(self, temp_elf: Path, capsys: pytest.CaptureFixture[str]):
+        """Test that we skip patching if current_align < TARGET_ALIGN for safety."""
+        # Create an ELF with 0x200 (512 bytes) alignment
+        create_dummy_elf(temp_elf, is_64bit=True, p_align=0x200)
+
+        with (
+            Path.open(temp_elf, "r+b") as f,
+            mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_WRITE) as data
+        ):
+            changed = patch_data(data, write=True)
+
+        assert changed is False
+
+        val = struct.unpack_from("<Q", temp_elf.read_bytes(), 112)[0]
+        assert val == 0x200
+
+        captured = capsys.readouterr()
+        assert "No change" in captured.out
 
 class TestBinaryVariants:
     @pytest.mark.parametrize(

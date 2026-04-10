@@ -146,7 +146,7 @@ def patch_data(data: mmap.mmap, write: bool) -> bool:
             align_pos = entry_pos + offsets["p_align_offset"]
             current_align = get_val(align_pos, offsets["fmt"])
 
-            if current_align != TARGET_ALIGN:
+            if current_align > TARGET_ALIGN:
                 if write:
                     print(
                         f"{LOG_TITLE} Patching segment {i}: {hex(current_align)} -> {hex(TARGET_ALIGN)}"
@@ -155,7 +155,16 @@ def patch_data(data: mmap.mmap, write: bool) -> bool:
                         f"{endian}{offsets['fmt']}", data, align_pos, TARGET_ALIGN
                     )
                 changed = True
-
+            elif current_align == TARGET_ALIGN:
+                pass
+            else:
+                # ELF specification requires p_offset mod p_align = p_vaddr mod p_align
+                # Current alignment is SMALLER than target (e.g., 1KB < 4KB)
+                # which is NOT safe to increase the alignment manually
+                print(
+                    f"{ERR_TITLE} Segment {i}: Alignment {hex(current_align)} < {hex(TARGET_ALIGN)}. "
+                    f"No change to keep safe."
+                )
     return changed
 
 
