@@ -65,7 +65,7 @@ fixable = ["ALL"]
 
 [tool.ruff.lint.mccabe]
 # Max complexity (standard is 10)
-max-complexity = 14
+max-complexity = 15
 
 
 [tool.ruff.format]

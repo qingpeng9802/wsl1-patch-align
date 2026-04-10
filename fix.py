@@ -33,6 +33,10 @@ ERR_TITLE: Final = f"{RED}[p_align]{NC}"
 
 PT_LOAD: Final = 1
 PN_XNUM: Final = 0xffff
+# WSL 1 needs the p_align to be multiple of the page size (4KB) and not 0
+# Also, it is safe to patch large -> small to hold
+# ELF spec: p_offset mod p_align = p_vaddr mod p_align
+# Thus, the target is the minimum acceptable alignment 4096
 TARGET_ALIGN: Final = 0x1000
 
 class ELFOffsets(TypedDict):
@@ -136,6 +140,7 @@ def patch_data(data: mmap.mmap, write: bool) -> bool:
 
     # 3. Find and Patch Segments
     changed = False
+    unsafe = False
     for i in range(phnum):
         # Calculate the start of this specific segment header
         entry_pos = phoff + (i * phentsize)
@@ -159,12 +164,17 @@ def patch_data(data: mmap.mmap, write: bool) -> bool:
                 pass
             else:
                 # ELF specification requires p_offset mod p_align = p_vaddr mod p_align
-                # Current alignment is SMALLER than target (e.g., 1KB < 4KB)
+                # Current alignment is SMALLER than the target (e.g., 1KB < 4KB)
                 # which is NOT safe to increase the alignment manually
                 print(
                     f"{ERR_TITLE} Segment {i}: Alignment {hex(current_align)} < {hex(TARGET_ALIGN)}. "
                     f"No change to keep safe."
                 )
+                unsafe = True
+
+    if unsafe:
+        return False
+
     return changed
 
 
