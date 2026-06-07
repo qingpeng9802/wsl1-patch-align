@@ -25,10 +25,10 @@ COL: Final[bool] = (
     and not os.getenv("NO_COLOR")
     and os.getenv("TERM", "dumb").lower() != "dumb"
 )
-BLUE: Final = "\033[1;34m" if COL else ""
+CYAN: Final = "\033[1;36m" if COL else ""
 RED: Final = "\033[1;31m" if COL else ""
 NC: Final = "\033[0m" if COL else ""
-LOG_TITLE: Final = f"{BLUE}[p_align]{NC}"
+LOG_TITLE: Final = f"{CYAN}[p_align]{NC}"
 ERR_TITLE: Final = f"{RED}[p_align]{NC}"
 
 PT_LOAD: Final = 1
